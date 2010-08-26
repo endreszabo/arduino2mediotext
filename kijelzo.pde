@@ -23,7 +23,6 @@ const int FONT_OFFSET = 0x0000;
 //unsigned int onTime=100;
 const prog_uint8_t C64_CHAR[] PROGMEM = { FONTDATA };
 
-byte isActive;
 byte fb[12][7];
 
 int screenRow;
@@ -31,10 +30,6 @@ int dataPin=13;
 int clockPin=12;
 
 void stepRow() {
-  if (isActive==1) {
-    return;
-  }
-  isActive=1;
   screenRow--;
   if (screenRow < 0) {
     screenRow = 6;
@@ -45,7 +40,6 @@ void stepRow() {
     shiftOut(dataPin, clockPin, MSBFIRST, 255-(fb[rx][screenRow]));
   }
   setRow(screenRow);
-  isActive=0;
 }
 
 void setRow(byte row) {
