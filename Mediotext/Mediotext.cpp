@@ -27,9 +27,9 @@ void Mediotext::step_row() {
   if (screenRow < 0) {
     screenRow = 6;
   }
-  digitalWrite(this->blank_pin,HIGH);
   this->update_function(actual_row); //call user defined function to update framebuffer.
                                      //It should be fast to complete in the interrupt i guess to not to be throttled
+  digitalWrite(this->blank_pin,HIGH);
   for (byte rx=0; rx<12; rx++) {
     shiftOut(this->shift_data_pin, this->shift_clk_pin, MSBFIRST, 255-(fb[rx][this->actual_row]));
   }
