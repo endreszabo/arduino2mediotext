@@ -1,5 +1,4 @@
 #include <Mediotext.h>
-
 //#include <TimerOne.h>
 #include "linux8x8.h"
 #include <avr/pgmspace.h>
