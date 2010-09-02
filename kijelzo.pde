@@ -1,4 +1,6 @@
-#include <TimerOne.h>
+#include <Mediotext.h>
+
+//#include <TimerOne.h>
 #include "linux8x8.h"
 #include <avr/pgmspace.h>
 
@@ -54,11 +56,11 @@ void setup() {
   byte i;
 
 //  Serial.begin(9600);
-  Timer1.initialize(2200);
+//  Timer1.initialize(2200);
   for (i = 8; i <= 13; i++) {
     pinMode(i, OUTPUT);
   }
-  Timer1.attachInterrupt(stepRow);
+//  Timer1.attachInterrupt(stepRow);
 }
 int x,y,o;
 int loopCount=0;
