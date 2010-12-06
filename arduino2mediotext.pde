@@ -14,7 +14,7 @@ const char* SCROLLTEXT =
 "            http://hspbp.org/ - Hackerspace Budapest - We are the glider, not the gun ***          ";
 const int FONT_OFFSET = 0x0000;                         
 const prog_uint8_t C64_CHAR[] PROGMEM = { FONTDATA };
-byte timer=11;
+byte timer=0;
 
 #define SIZEX 96
 #define SIZEY 7
@@ -51,30 +51,42 @@ int waitVsync=1;
 //                  +----+
 
 void stepRow() {
-  screenRow=screenRow++%SIZEY;
+digitalWrite(13,HIGH);
+  screenRow--;
+  if (screenRow<0) {
+  screenRow=6;
+  }
+//  screenRow=screenRow++%SIZEY;
   updateFb(SIZEY-screenRow);
   cli();
   for (rx=0; rx<12; rx++) {
+    shiftOut(dataPin, clockPin, MSBFIRST, 255-(fb[rx][screenRow]));
+	/*
     for (int8_t i=7; i>=0; i--)  {       // clock pin12 (0x10) HIGH + data pin13 a framebuffer es \
                                          // aktiv sor szerint beallitva (<<5), valamint blanking (0xf)
       PORTB  =  0x1f | ( !( fb[rx][SIZEY-screenRow] & (1<<i) ) <<5);
       PORTB &= ~0x10; //clock pin12 LOW
     }
+	*/
   }
   PORTB=SIZEY-screenRow;                     //select corresponding row
   sei();
+digitalWrite(13,LOW);
 }
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("setup() running");
+//  Serial.begin(9600);
+//  Serial.println("setup() running");
   for (uint8_t i = 8; i <= 13; i++) {
     pinMode(i, OUTPUT);
   }
+  for (rx=0; rx<12; rx++) {
+  fb[rx][3]=1;
+  }
   PORTB=0xf;
-  Timer1.initialize(2900+(2<<timer));
+  Timer1.initialize(10000);
   Timer1.attachInterrupt(stepRow);
-  Serial.println("setup() done");
+//  Serial.println("setup() done");
 }
 
 void updateFb(uint8_t row) {
@@ -98,6 +110,7 @@ void updateFb(uint8_t row) {
 
 
 void loop() {
+/*
   if (Serial.available()>0) {
     byte b=Serial.read();
     if (b=='q') {
@@ -113,7 +126,7 @@ void loop() {
     } else if (b=='d') {
       waitVsync=0;
     } else if (b=='r') {
-      ;
+      update=0;
     } else if (b=='f') {
       updateFb(0);
       Serial.println("stepped");
@@ -121,10 +134,10 @@ void loop() {
     if (timer<=1) {
       timer=1;
     }
-    Timer1.setPeriod(2<<timer);
+    Timer1.setPeriod(2900+(1<<timer));
     Serial.print("Interrupt timing is now: ");
     Serial.print(2<<timer);
     Serial.println(" ms.");
   }
+  */
 }
-
