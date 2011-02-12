@@ -3,6 +3,7 @@
 //#include "linux8x8.h"
 #include "CP852.h"
 #include <avr/pgmspace.h>
+#define SERIAL
 
 void stepRow();
 void setRow(byte row);
@@ -11,7 +12,14 @@ void updateFb(uint8_t row);
 void loop();
 int run=0;
 const char* SCROLLTEXT = 
-"            http://hspbp.org/ - Hackerspace Budapest - We are the glider, not the gun ***          ";
+//23456789012                                                                             123456789012
+
+"            Ret3k Maximum Selecta Dubstep Is Fun! - www.bitlabrecords.com/dubstepisfun http://hspbp.org            ";
+//"            http://hspbp.org/ - Hackerspace Budapest - We are the glider, not the gun ***            ";
+//        if (o>((SCROLLTEXT_SIZE+(SIZEX/8*2))*8)) {
+//416 208
+//const int SCROLLTEXT_SIZE=sizeof(SCROLLTEXT)/sizeof(char);
+#define SCROLLTEXT_SIZE 114
 const int FONT_OFFSET = 0x0000;                         
 const prog_uint8_t C64_CHAR[] PROGMEM = { FONTDATA };
 byte timer=0;
@@ -27,7 +35,8 @@ int dataPin=13;
 int clockPin=12;
 byte rx;
 //int x,y,o;
-uint8_t o;
+//uint8_t o;
+uint16_t o;
 //int loopCount=0;
 int waitVsync=1;
  
@@ -51,32 +60,38 @@ int waitVsync=1;
 //                  +----+
 
 void stepRow() {
-digitalWrite(13,HIGH);
+//digitalWrite(13,HIGH);
+
+  updateFb(SIZEY-screenRow-1);
   screenRow--;
   if (screenRow<0) {
-  screenRow=6;
+	  screenRow=6;
   }
-//  screenRow=screenRow++%SIZEY;
-  updateFb(SIZEY-screenRow);
+
+
+//  screenRow=--screenRow%SIZEY;
   cli();
+  PORTB=7;
   for (rx=0; rx<12; rx++) {
-    shiftOut(dataPin, clockPin, MSBFIRST, 255-(fb[rx][screenRow]));
-	/*
+    //shiftOut(dataPin, clockPin, MSBFIRST, 255-(fb[rx][screenRow]));
     for (int8_t i=7; i>=0; i--)  {       // clock pin12 (0x10) HIGH + data pin13 a framebuffer es \
                                          // aktiv sor szerint beallitva (<<5), valamint blanking (0xf)
-      PORTB  =  0x1f | ( !( fb[rx][SIZEY-screenRow] & (1<<i) ) <<5);
+//      PORTB  =  0x1f | ( !( fb[rx][SIZEY-1-screenRow] & (1<<i) ) <<5);
+      PORTB  =  0x1f | ( !( fb[rx][screenRow] & (1<<i) ) <<5);
       PORTB &= ~0x10; //clock pin12 LOW
     }
-	*/
   }
-  PORTB=SIZEY-screenRow;                     //select corresponding row
+//  PORTB=(SIZEY-1-screenRow);                     //select corresponding row
+  PORTB=(screenRow);                     //select corresponding row
   sei();
-digitalWrite(13,LOW);
+//digitalWrite(13,LOW);
 }
 
 void setup() {
-//  Serial.begin(9600);
-//  Serial.println("setup() running");
+#ifdef SERIAL
+  Serial.begin(9600);
+  Serial.println("setup() running");
+#endif
   for (uint8_t i = 8; i <= 13; i++) {
     pinMode(i, OUTPUT);
   }
@@ -84,15 +99,19 @@ void setup() {
   fb[rx][3]=1;
   }
   PORTB=0xf;
-  Timer1.initialize(10000);
+  Timer1.initialize(2800);
   Timer1.attachInterrupt(stepRow);
+
+#ifdef SERIAL
 //  Serial.println("setup() done");
+#endif
 }
 
 void updateFb(uint8_t row) {
   if (row == SIZEY-1) {
-    if ((waitVsync==1 && screenRow==6) || waitVsync==0) {
-      if (update==1) {
+    //if ((waitVsync==1 && screenRow==6) || waitVsync==0) {
+    //if (screenRow==6) {
+     if (update==1) {
         o++;
         for (byte b = 0; b<SIZEX/8; b++) {
           for (byte i = 0; i<SIZEY; i++) {
@@ -100,17 +119,17 @@ void updateFb(uint8_t row) {
             (pgm_read_byte_near(C64_CHAR + FONT_OFFSET + i+(SCROLLTEXT[o/8+b+1]-32)*8)>>(8-o%8));
           }
         }
-        if (o>((100-SIZEX/8)*8)) {
+        if (o>((SCROLLTEXT_SIZE-(SIZEX/8))*8)) {
           o=0;
         }
       }
-    }
+//    }
   }
 }
 
 
 void loop() {
-/*
+#ifdef SERIAL
   if (Serial.available()>0) {
     byte b=Serial.read();
     if (b=='q') {
@@ -128,16 +147,16 @@ void loop() {
     } else if (b=='r') {
       update=0;
     } else if (b=='f') {
-      updateFb(0);
+      updateFb(SIZEY);
       Serial.println("stepped");
     }
-    if (timer<=1) {
-      timer=1;
+    if (timer<=0) {
+      timer=0;
     }
     Timer1.setPeriod(2900+(1<<timer));
     Serial.print("Interrupt timing is now: ");
-    Serial.print(2<<timer);
+    Serial.print(1<<timer);
     Serial.println(" ms.");
   }
-  */
+#endif
 }
